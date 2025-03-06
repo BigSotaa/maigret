@@ -1,16 +1,30 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
+
 LABEL maintainer="Soxoj <soxoj@protonmail.com>"
+
 WORKDIR /app
-RUN pip install --no-cache-dir --upgrade pip
+
+# Install necessary system dependencies
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
       gcc \
+      python3-dev \
+      libffi-dev \
+      build-essential \
       musl-dev \
       libxml2 \
       libxml2-dev \
       libxslt-dev \
-    && \
-    rm -rf /var/lib/apt/lists/* /tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy source files
 COPY . .
-RUN YARL_NO_EXTENSIONS=1 python3 -m pip install --no-cache-dir .
+
+# Install dependencies, forcing a pure Python install for `yarl`
+RUN YARL_NO_EXTENSIONS=1 pip install --no-cache-dir --no-binary :all: .
+
+# Set entrypoint
 ENTRYPOINT ["maigret"]
