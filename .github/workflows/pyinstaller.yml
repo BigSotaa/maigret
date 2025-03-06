@@ -29,8 +29,8 @@ jobs:
     - name: Build executable with PyInstaller
       run: pyinstaller --onefile maigret/__main__.py
 
-    - name: Upload Artifact
+    - name: Upload Built EXE
       uses: actions/upload-artifact@v4
       with:
         name: built-exe
-        path: dist/your_script.exe  # Ensure this is the correct file output
+        path: dist/__main__.exe  # Matches the actual file PyInstaller generatednsure this is the correct file output
