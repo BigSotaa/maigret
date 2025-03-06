@@ -1,30 +1,38 @@
+# Use an official Python image as a base
 FROM python:3.10-slim
 
-LABEL maintainer="Soxoj <soxoj@protonmail.com>"
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    YARL_NO_EXTENSIONS=1 \
+    PATH="/root/.cargo/bin:$PATH"
 
-WORKDIR /app
-
-# Install necessary system dependencies
+# Install system dependencies
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
-      gcc \
-      python3-dev \
-      libffi-dev \
-      build-essential \
-      musl-dev \
-      libxml2 \
-      libxml2-dev \
-      libxslt-dev \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+        gcc \
+        python3-dev \
+        libffi-dev \
+        build-essential \
+        musl-dev \
+        libxml2 \
+        libxml2-dev \
+        libxslt-dev \
+        curl \
+        cargo \
+        rustc && \
+    rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
-RUN pip install --no-cache-dir --upgrade pip
+# Install Rust (alternative way)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-# Copy source files
-COPY . .
+# Set working directory inside container
+WORKDIR /app
 
-# Install dependencies, forcing a pure Python install for `yarl`
-RUN YARL_NO_EXTENSIONS=1 pip install --no-cache-dir --no-binary :all: .
+# Copy project files
+COPY . /app
 
-# Set entrypoint
-ENTRYPOINT ["maigret"]
+# Install Python dependencies
+RUN pip install --no-cache-dir --no-binary :all: .
+
+# Set entry point
+ENTRYPOINT ["python", "-m", "maigret"]
