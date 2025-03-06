@@ -1,4 +1,4 @@
-FROM python:3.10-slim  # Use Python 3.10 or even python:3.11-slim if needed
+FROM python:3.10-slim
 
 LABEL maintainer="Soxoj <soxoj@protonmail.com>"
 
