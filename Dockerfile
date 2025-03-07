@@ -31,7 +31,13 @@ WORKDIR /app
 # Copy project files
 COPY . /app
 
-# Install Python dependencies
-RUN pip install --no-cache-dir .
+# Ensure pip is up-to-date and install dependencies
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install uvicorn fastapi
+
+# Ensure main.py exists and is executable
+RUN ls -la /app
+
 # Set entry point
-ENTRYPOINT ["python", "-m", "maigret"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
