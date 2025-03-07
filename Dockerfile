@@ -32,7 +32,6 @@ WORKDIR /app
 COPY . /app
 
 # Install Python dependencies
-RUN pip install --no-cache-dir --no-binary :all: .
-
+RUN pip install --no-cache-dir .
 # Set entry point
 ENTRYPOINT ["python", "-m", "maigret"]
