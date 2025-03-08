@@ -65,6 +65,9 @@ networkx = "^2.6.3"
 pyvis = "^0.2.1"
 reportlab = "^4.2.0"
 cloudscraper = "^1.2.71"
+fastapi = "^0.115.11"
+uvicorn = "^0.34.0"
+python-multipart = "^0.0.20"
 
 
 [tool.poetry.group.dev.dependencies]

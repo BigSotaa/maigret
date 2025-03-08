@@ -1,0 +1,505 @@
+Index: main.py
+===================================================================
+diff --git a/main.py b/main.py
+deleted file mode 100644
+--- a/main.py	(revision 7afab62b598770d2d62497eee83e92ac0a2d5967)
++++ /dev/null	(revision 7afab62b598770d2d62497eee83e92ac0a2d5967)
+@@ -1,41 +0,0 @@
+-from fastapi import FastAPI, Query
+-import subprocess
+-import json
+-
+-app = FastAPI()
+-
+-@app.get("/")
+-def read_root():
+-    return {"message": "Maigret API is running!"}
+-
+-@app.get("/search")
+-def search_user(
+-    username: str,
+-    json_output: bool = Query(True, description="Return results in JSON format"),
+-    no_progress: bool = Query(True, description="Disable progress bar"),
+-    timeout: int = Query(10, description="Request timeout in seconds"),
+-    site: str = Query("", description="Comma-separated list of specific sites to search"),
+-    tags: str = Query("", description="Comma-separated tags to filter sites"),
+-    output_file: str = Query("", description="Save results to a specific file")
+-):
+-    # Construct the command dynamically
+-    command = ["python", "-m", "maigret", username]
+-
+-    if json_output:
+-        command.append("--json")
+-    if no_progress:
+-        command.append("--no-progress")
+-    if timeout:
+-        command.extend(["--timeout", str(timeout)])
+-    if site:
+-        command.extend(["--site", site])
+-    if tags:
+-        command.extend(["--tags", tags])
+-    if output_file:
+-        command.extend(["--output", output_file])
+-
+-    try:
+-        result = subprocess.run(command, capture_output=True, text=True)
+-        return {"command": " ".join(command), "output": result.stdout}
+-    except Exception as e:
+-        return {"error": str(e)}
+Index: maigret-frontend/main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/maigret-frontend/main.py b/maigret-frontend/main.py
+new file mode 100644
+--- /dev/null	(date 1741428049305)
++++ b/maigret-frontend/main.py	(date 1741428049305)
+@@ -0,0 +1,77 @@
++from fastapi import FastAPI, Query  # ✅ Import Query
++from fastapi.middleware.cors import CORSMiddleware
++import subprocess  # ✅ Ensure subprocess is imported for running Maigret commands
++
++# ✅ Define FastAPI app instance
++app = FastAPI()
++
++# ✅ Add CORS Middleware
++app.add_middleware(
++    CORSMiddleware,
++    allow_origins=["*"],  # Allow all domains (change for production)
++    allow_credentials=True,
++    allow_methods=["*"],
++    allow_headers=["*"],
++)
++
++# ✅ Test API endpoint
++@app.get("/")
++def read_root():
++    return {"message": "FastAPI is running!"}
++
++# ✅ Search endpoint
++@app.get("/search")
++def search_user(
++    username: str,
++    tags: str = Query("", description="Filter sites by tags"),
++    max_connections: int = Query(100, description="Max concurrent connections"),
++    all_sites: bool = Query(False, description="Use all available sites"),
++    top_sites: int = Query(500, description="Number of top-ranked sites to scan"),
++    timeout: int = Query(30, description="Request timeout in seconds"),
++    cookies_file: str = Query("", description="Path to cookies file"),
++    no_recursion: bool = Query(False, description="Disable recursive search"),
++    use_disabled_sites: bool = Query(False, description="Include disabled sites"),
++    id_type: str = Query("", description="Custom identifier types"),
++    ignore_ids: bool = Query(False, description="Ignore irrelevant usernames"),
++    output_format: str = Query("json", description="Output format (json, csv, txt, pdf, html)"),
++    output_folder: str = Query("results", description="Folder to save results"),
++    verbose: bool = Query(False, description="Enable verbose mode"),
++    debug: bool = Query(False, description="Enable debug mode"),
++    retries: int = Query(3, description="Number of retry attempts")
++):
++    command = ["python", "-m", "maigret", username]
++
++    if tags:
++        command.extend(["--tags", tags])
++    if all_sites:
++        command.append("--all-sites")
++    if top_sites:
++        command.extend(["--top-sites", str(top_sites)])
++    if timeout:
++        command.extend(["--timeout", str(timeout)])
++    if cookies_file:
++        command.extend(["--cookies-jar-file", cookies_file])
++    if no_recursion:
++        command.append("--no-recursion")
++    if use_disabled_sites:
++        command.append("--use-disabled-sites")
++    if id_type:
++        command.extend(["--id-type", id_type])
++    if ignore_ids:
++        command.append("--ignore-ids")
++    if output_format:
++        command.extend(["--" + output_format])
++    if output_folder:
++        command.extend(["-fo", output_folder])
++    if verbose:
++        command.append("--verbose")
++    if debug:
++        command.append("--debug")
++    if retries:
++        command.extend(["--retries", str(retries)])
++
++    try:
++        result = subprocess.run(command, capture_output=True, text=True)
++        return {"command": " ".join(command), "output": result.stdout}
++    except Exception as e:
++        return {"error": str(e)}
+Index: maigret-frontend/package.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>{\n  \"name\": \"maigret-frontend\",\n  \"version\": \"0.1.0\",\n  \"private\": true,\n  \"dependencies\": {\n    \"@emotion/react\": \"^11.14.0\",\n    \"@emotion/styled\": \"^11.14.0\",\n    \"@mui/material\": \"^6.4.7\",\n    \"@testing-library/dom\": \"^10.4.0\",\n    \"@testing-library/jest-dom\": \"^6.6.3\",\n    \"@testing-library/react\": \"^16.2.0\",\n    \"@testing-library/user-event\": \"^13.5.0\",\n    \"react\": \"^19.0.0\",\n    \"react-dom\": \"^19.0.0\",\n    \"react-scripts\": \"5.0.1\",\n    \"web-vitals\": \"^2.1.4\"\n  },\n  \"scripts\": {\n    \"start\": \"react-scripts start\",\n    \"build\": \"react-scripts build\",\n    \"test\": \"react-scripts test\",\n    \"eject\": \"react-scripts eject\"\n  },\n  \"eslintConfig\": {\n    \"extends\": [\n      \"react-app\",\n      \"react-app/jest\"\n    ]\n  },\n  \"browserslist\": {\n    \"production\": [\n      \">0.2%\",\n      \"not dead\",\n      \"not op_mini all\"\n    ],\n    \"development\": [\n      \"last 1 chrome version\",\n      \"last 1 firefox version\",\n      \"last 1 safari version\"\n    ]\n  }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/maigret-frontend/package.json b/maigret-frontend/package.json
+--- a/maigret-frontend/package.json	(revision 7afab62b598770d2d62497eee83e92ac0a2d5967)
++++ b/maigret-frontend/package.json	(date 1741429014878)
+@@ -12,7 +12,7 @@
+     "@testing-library/user-event": "^13.5.0",
+     "react": "^19.0.0",
+     "react-dom": "^19.0.0",
+-    "react-scripts": "5.0.1",
++    "react-scripts": "^5.0.1",
+     "web-vitals": "^2.1.4"
+   },
+   "scripts": {
+Index: maigret-frontend/package-lock.json
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/maigret-frontend/package-lock.json b/maigret-frontend/package-lock.json
+--- a/maigret-frontend/package-lock.json	(revision 7afab62b598770d2d62497eee83e92ac0a2d5967)
++++ b/maigret-frontend/package-lock.json	(date 1741429312600)
+@@ -17,7 +17,7 @@
+         "@testing-library/user-event": "^13.5.0",
+         "react": "^19.0.0",
+         "react-dom": "^19.0.0",
+-        "react-scripts": "5.0.1",
++        "react-scripts": "^5.0.1",
+         "web-vitals": "^2.1.4"
+       }
+     },
+@@ -105,6 +105,12 @@
+         "url": "https://opencollective.com/babel"
+       }
+     },
++    "node_modules/@babel/core/node_modules/convert-source-map": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/convert-source-map/-/convert-source-map-2.0.0.tgz",
++      "integrity": "sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==",
++      "license": "MIT"
++    },
+     "node_modules/@babel/core/node_modules/semver": {
+       "version": "6.3.1",
+       "resolved": "https://registry.npmjs.org/semver/-/semver-6.3.1.tgz",
+@@ -2389,21 +2395,6 @@
+         "stylis": "4.2.0"
+       }
+     },
+-    "node_modules/@emotion/babel-plugin/node_modules/convert-source-map": {
+-      "version": "1.9.0",
+-      "resolved": "https://registry.npmjs.org/convert-source-map/-/convert-source-map-1.9.0.tgz",
+-      "integrity": "sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==",
+-      "license": "MIT"
+-    },
+-    "node_modules/@emotion/babel-plugin/node_modules/source-map": {
+-      "version": "0.5.7",
+-      "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.5.7.tgz",
+-      "integrity": "sha512-LbrmJOMUSdEVxIKvdcJzQC+nQhe8FUZQTXQy6+I75skNgn3OoQ0DZA8YnFa7gp8tqtL3KPf1kmo0R5DoApeSGQ==",
+-      "license": "BSD-3-Clause",
+-      "engines": {
+-        "node": ">=0.10.0"
+-      }
+-    },
+     "node_modules/@emotion/cache": {
+       "version": "11.14.0",
+       "resolved": "https://registry.npmjs.org/@emotion/cache/-/cache-11.14.0.tgz",
+@@ -2785,6 +2776,15 @@
+         "node": ">=6"
+       }
+     },
++    "node_modules/@istanbuljs/load-nyc-config/node_modules/resolve-from": {
++      "version": "5.0.0",
++      "resolved": "https://registry.npmjs.org/resolve-from/-/resolve-from-5.0.0.tgz",
++      "integrity": "sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=8"
++      }
++    },
+     "node_modules/@istanbuljs/schema": {
+       "version": "0.1.3",
+       "resolved": "https://registry.npmjs.org/@istanbuljs/schema/-/schema-0.1.3.tgz",
+@@ -3048,12 +3048,6 @@
+         "node": "^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0"
+       }
+     },
+-    "node_modules/@jest/transform/node_modules/convert-source-map": {
+-      "version": "1.9.0",
+-      "resolved": "https://registry.npmjs.org/convert-source-map/-/convert-source-map-1.9.0.tgz",
+-      "integrity": "sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==",
+-      "license": "MIT"
+-    },
+     "node_modules/@jest/transform/node_modules/source-map": {
+       "version": "0.6.1",
+       "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.6.1.tgz",
+@@ -3202,12 +3196,6 @@
+         }
+       }
+     },
+-    "node_modules/@mui/material/node_modules/react-is": {
+-      "version": "19.0.0",
+-      "resolved": "https://registry.npmjs.org/react-is/-/react-is-19.0.0.tgz",
+-      "integrity": "sha512-H91OHcwjZsbq3ClIDHMzBShc1rotbfACdWENsmEf0IFvZ3FgGPtdHMcsv45bQ1hAbgdfiA8SnxTKfDS+x/8m2g==",
+-      "license": "MIT"
+-    },
+     "node_modules/@mui/private-theming": {
+       "version": "6.4.6",
+       "resolved": "https://registry.npmjs.org/@mui/private-theming/-/private-theming-6.4.6.tgz",
+@@ -3353,12 +3341,6 @@
+         }
+       }
+     },
+-    "node_modules/@mui/utils/node_modules/react-is": {
+-      "version": "19.0.0",
+-      "resolved": "https://registry.npmjs.org/react-is/-/react-is-19.0.0.tgz",
+-      "integrity": "sha512-H91OHcwjZsbq3ClIDHMzBShc1rotbfACdWENsmEf0IFvZ3FgGPtdHMcsv45bQ1hAbgdfiA8SnxTKfDS+x/8m2g==",
+-      "license": "MIT"
+-    },
+     "node_modules/@nicolo-ribaudo/eslint-scope-5-internals": {
+       "version": "5.1.1-v1",
+       "resolved": "https://registry.npmjs.org/@nicolo-ribaudo/eslint-scope-5-internals/-/eslint-scope-5-internals-5.1.1-v1.tgz",
+@@ -3483,6 +3465,15 @@
+         }
+       }
+     },
++    "node_modules/@pmmmwh/react-refresh-webpack-plugin/node_modules/source-map": {
++      "version": "0.7.4",
++      "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.7.4.tgz",
++      "integrity": "sha512-l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==",
++      "license": "BSD-3-Clause",
++      "engines": {
++        "node": ">= 8"
++      }
++    },
+     "node_modules/@popperjs/core": {
+       "version": "2.11.8",
+       "resolved": "https://registry.npmjs.org/@popperjs/core/-/core-2.11.8.tgz",
+@@ -3860,15 +3851,6 @@
+         "node": ">=18"
+       }
+     },
+-    "node_modules/@testing-library/dom/node_modules/aria-query": {
+-      "version": "5.3.0",
+-      "resolved": "https://registry.npmjs.org/aria-query/-/aria-query-5.3.0.tgz",
+-      "integrity": "sha512-b0P0sZPKtyu8HkeRAfCq0IfURZK+SuwMjY1UXGBU27wpAiTwQAIlq56IbIO+ytk/JjS1fMR14ee5WBBfKi5J6A==",
+-      "license": "Apache-2.0",
+-      "dependencies": {
+-        "dequal": "^2.0.3"
+-      }
+-    },
+     "node_modules/@testing-library/jest-dom": {
+       "version": "6.6.3",
+       "resolved": "https://registry.npmjs.org/@testing-library/jest-dom/-/jest-dom-6.6.3.tgz",
+@@ -4189,9 +4171,9 @@
+       "license": "MIT"
+     },
+     "node_modules/@types/node": {
+-      "version": "22.13.9",
+-      "resolved": "https://registry.npmjs.org/@types/node/-/node-22.13.9.tgz",
+-      "integrity": "sha512-acBjXdRJ3A6Pb3tqnw9HZmyR3Fiol3aGxRCK1x3d+6CDAMjl7I649wpSd+yNURCjbOUGu9tqtLKnTGxmK6CyGw==",
++      "version": "22.13.10",
++      "resolved": "https://registry.npmjs.org/@types/node/-/node-22.13.10.tgz",
++      "integrity": "sha512-I6LPUvlRH+O6VRUqYOcMudhaIdUVWfsjnZavnsraHvpBwaEyMN29ry+0UVJhImYL16xsscu0aske3yA+uPOWfw==",
+       "license": "MIT",
+       "dependencies": {
+         "undici-types": "~6.20.0"
+@@ -5027,12 +5009,12 @@
+       }
+     },
+     "node_modules/aria-query": {
+-      "version": "5.3.2",
+-      "resolved": "https://registry.npmjs.org/aria-query/-/aria-query-5.3.2.tgz",
+-      "integrity": "sha512-COROpnaoap1E2F000S62r6A60uHZnmlvomhfyT2DlTcrY1OrBKn2UhH7qn5wTC9zMvD0AY7csdPSNwKP+7WiQw==",
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/aria-query/-/aria-query-5.3.0.tgz",
++      "integrity": "sha512-b0P0sZPKtyu8HkeRAfCq0IfURZK+SuwMjY1UXGBU27wpAiTwQAIlq56IbIO+ytk/JjS1fMR14ee5WBBfKi5J6A==",
+       "license": "Apache-2.0",
+-      "engines": {
+-        "node": ">= 0.4"
++      "dependencies": {
++        "dequal": "^2.0.3"
+       }
+     },
+     "node_modules/array-buffer-byte-length": {
+@@ -6325,9 +6307,9 @@
+       }
+     },
+     "node_modules/convert-source-map": {
+-      "version": "2.0.0",
+-      "resolved": "https://registry.npmjs.org/convert-source-map/-/convert-source-map-2.0.0.tgz",
+-      "integrity": "sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==",
++      "version": "1.9.0",
++      "resolved": "https://registry.npmjs.org/convert-source-map/-/convert-source-map-1.9.0.tgz",
++      "integrity": "sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==",
+       "license": "MIT"
+     },
+     "node_modules/cookie": {
+@@ -7873,6 +7855,15 @@
+         "eslint": "^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9"
+       }
+     },
++    "node_modules/eslint-plugin-jsx-a11y/node_modules/aria-query": {
++      "version": "5.3.2",
++      "resolved": "https://registry.npmjs.org/aria-query/-/aria-query-5.3.2.tgz",
++      "integrity": "sha512-COROpnaoap1E2F000S62r6A60uHZnmlvomhfyT2DlTcrY1OrBKn2UhH7qn5wTC9zMvD0AY7csdPSNwKP+7WiQw==",
++      "license": "Apache-2.0",
++      "engines": {
++        "node": ">= 0.4"
++      }
++    },
+     "node_modules/eslint-plugin-react": {
+       "version": "7.37.4",
+       "resolved": "https://registry.npmjs.org/eslint-plugin-react/-/eslint-plugin-react-7.37.4.tgz",
+@@ -9658,15 +9649,6 @@
+         "url": "https://github.com/sponsors/sindresorhus"
+       }
+     },
+-    "node_modules/import-fresh/node_modules/resolve-from": {
+-      "version": "4.0.0",
+-      "resolved": "https://registry.npmjs.org/resolve-from/-/resolve-from-4.0.0.tgz",
+-      "integrity": "sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==",
+-      "license": "MIT",
+-      "engines": {
+-        "node": ">=4"
+-      }
+-    },
+     "node_modules/import-local": {
+       "version": "3.2.0",
+       "resolved": "https://registry.npmjs.org/import-local/-/import-local-3.2.0.tgz",
+@@ -11975,9 +11957,9 @@
+       }
+     },
+     "node_modules/nanoid": {
+-      "version": "3.3.8",
+-      "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.3.8.tgz",
+-      "integrity": "sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w==",
++      "version": "3.3.9",
++      "resolved": "https://registry.npmjs.org/nanoid/-/nanoid-3.3.9.tgz",
++      "integrity": "sha512-SppoicMGpZvbF1l3z4x7No3OlIjP7QJvC9XR7AhZr1kL133KHnKPztkKDc+Ir4aJ/1VhTySrtKhrsycmrMQfvg==",
+       "funding": [
+         {
+           "type": "github",
+@@ -14033,6 +14015,12 @@
+         "url": "https://github.com/chalk/ansi-styles?sponsor=1"
+       }
+     },
++    "node_modules/pretty-format/node_modules/react-is": {
++      "version": "17.0.2",
++      "resolved": "https://registry.npmjs.org/react-is/-/react-is-17.0.2.tgz",
++      "integrity": "sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==",
++      "license": "MIT"
++    },
+     "node_modules/process-nextick-args": {
+       "version": "2.0.1",
+       "resolved": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-2.0.1.tgz",
+@@ -14383,9 +14371,9 @@
+       "license": "MIT"
+     },
+     "node_modules/react-is": {
+-      "version": "17.0.2",
+-      "resolved": "https://registry.npmjs.org/react-is/-/react-is-17.0.2.tgz",
+-      "integrity": "sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==",
++      "version": "19.0.0",
++      "resolved": "https://registry.npmjs.org/react-is/-/react-is-19.0.0.tgz",
++      "integrity": "sha512-H91OHcwjZsbq3ClIDHMzBShc1rotbfACdWENsmEf0IFvZ3FgGPtdHMcsv45bQ1hAbgdfiA8SnxTKfDS+x/8m2g==",
+       "license": "MIT"
+     },
+     "node_modules/react-refresh": {
+@@ -14752,7 +14740,7 @@
+         "node": ">=8"
+       }
+     },
+-    "node_modules/resolve-from": {
++    "node_modules/resolve-cwd/node_modules/resolve-from": {
+       "version": "5.0.0",
+       "resolved": "https://registry.npmjs.org/resolve-from/-/resolve-from-5.0.0.tgz",
+       "integrity": "sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==",
+@@ -14761,6 +14749,15 @@
+         "node": ">=8"
+       }
+     },
++    "node_modules/resolve-from": {
++      "version": "4.0.0",
++      "resolved": "https://registry.npmjs.org/resolve-from/-/resolve-from-4.0.0.tgz",
++      "integrity": "sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==",
++      "license": "MIT",
++      "engines": {
++        "node": ">=4"
++      }
++    },
+     "node_modules/resolve-url-loader": {
+       "version": "4.0.0",
+       "resolved": "https://registry.npmjs.org/resolve-url-loader/-/resolve-url-loader-4.0.0.tgz",
+@@ -14789,12 +14786,6 @@
+         }
+       }
+     },
+-    "node_modules/resolve-url-loader/node_modules/convert-source-map": {
+-      "version": "1.9.0",
+-      "resolved": "https://registry.npmjs.org/convert-source-map/-/convert-source-map-1.9.0.tgz",
+-      "integrity": "sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==",
+-      "license": "MIT"
+-    },
+     "node_modules/resolve-url-loader/node_modules/picocolors": {
+       "version": "0.2.1",
+       "resolved": "https://registry.npmjs.org/picocolors/-/picocolors-0.2.1.tgz",
+@@ -15524,12 +15515,12 @@
+       "license": "MIT"
+     },
+     "node_modules/source-map": {
+-      "version": "0.7.4",
+-      "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.7.4.tgz",
+-      "integrity": "sha512-l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==",
++      "version": "0.5.7",
++      "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.5.7.tgz",
++      "integrity": "sha512-LbrmJOMUSdEVxIKvdcJzQC+nQhe8FUZQTXQy6+I75skNgn3OoQ0DZA8YnFa7gp8tqtL3KPf1kmo0R5DoApeSGQ==",
+       "license": "BSD-3-Clause",
+       "engines": {
+-        "node": ">= 8"
++        "node": ">=0.10.0"
+       }
+     },
+     "node_modules/source-map-js": {
+@@ -16842,9 +16833,9 @@
+       }
+     },
+     "node_modules/typescript": {
+-      "version": "4.9.5",
+-      "resolved": "https://registry.npmjs.org/typescript/-/typescript-4.9.5.tgz",
+-      "integrity": "sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==",
++      "version": "5.8.2",
++      "resolved": "https://registry.npmjs.org/typescript/-/typescript-5.8.2.tgz",
++      "integrity": "sha512-aJn6wq13/afZp/jT9QZmwEjDqqvSGp1VT5GVg+f/t6/oVyrgXM6BY1h9BRh/O5p3PlUPAe+WuiEZOmb/49RqoQ==",
+       "license": "Apache-2.0",
+       "peer": true,
+       "bin": {
+@@ -16852,7 +16843,7 @@
+         "tsserver": "bin/tsserver"
+       },
+       "engines": {
+-        "node": ">=4.2.0"
++        "node": ">=14.17"
+       }
+     },
+     "node_modules/unbox-primitive": {
+@@ -17079,11 +17070,14 @@
+         "node": ">=10.12.0"
+       }
+     },
+-    "node_modules/v8-to-istanbul/node_modules/convert-source-map": {
+-      "version": "1.9.0",
+-      "resolved": "https://registry.npmjs.org/convert-source-map/-/convert-source-map-1.9.0.tgz",
+-      "integrity": "sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==",
+-      "license": "MIT"
++    "node_modules/v8-to-istanbul/node_modules/source-map": {
++      "version": "0.7.4",
++      "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.7.4.tgz",
++      "integrity": "sha512-l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==",
++      "license": "BSD-3-Clause",
++      "engines": {
++        "node": ">= 8"
++      }
+     },
+     "node_modules/vary": {
+       "version": "1.1.2",
