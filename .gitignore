@@ -1,40 +1,35 @@
-# Virtual Environment
+# ✅ Ignore virtual environment (DO NOT commit)
 venv/
+.venv/
 
-# Editor Configurations
-.vscode/
-.idea/
-
-# Python
+# ✅ Ignore Python compiled files
 __pycache__/
+*.pyc
+*.pyo
 
-# Pip
-src/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb
-
-# Logs and backups
+# ✅ Ignore logs, cache, and temporary files
 *.log
 *.bak
-
-# Output files, except requirements.txt
-*.txt
-!requirements.txt
-
-# Comma-Separated Values (CSV) Reports
-*.csv
-
-# MacOS Folder Metadata File
 .DS_Store
-/reports/
 
-# Testing
+# ✅ Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# ✅ Ignore test and coverage artifacts
 .coverage
 dist/
 htmlcov/
 /test_*
 
-# Maigret files
+# ✅ Ignore Maigret-generated files
 settings.json
+
+# ✅ Ignore Node.js dependencies (for your React frontend)
+node_modules/
+package-lock.json
+
+# ✅ Ignore build files from React
+build/
+
+# ❌ DO NOT ignore src/ (your actual code)
+# src/ (Make sure this line is NOT in your .gitignore)
